@@ -11,6 +11,9 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 
+/**
+ * Class which serves as the implementation of the interface
+ * */
 @Component("RMIImpl")
 public class RMIImpl extends UnicastRemoteObject implements RMIInterface {
 
@@ -27,7 +30,7 @@ public class RMIImpl extends UnicastRemoteObject implements RMIInterface {
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      * */
     @Override
     public void updateGameServerPort(int port, int gameID){
@@ -37,7 +40,7 @@ public class RMIImpl extends UnicastRemoteObject implements RMIInterface {
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      * */
     @Override
     public void implementNewGame(ArrayList<String> gameConfig){
@@ -48,7 +51,7 @@ public class RMIImpl extends UnicastRemoteObject implements RMIInterface {
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      * */
     @Override
     public int checkGameVersion(int gameId, int currentVersion) {
@@ -59,7 +62,7 @@ public class RMIImpl extends UnicastRemoteObject implements RMIInterface {
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      * */
     @Override
     public ArrayList<String> getGameConfig(int gameId){

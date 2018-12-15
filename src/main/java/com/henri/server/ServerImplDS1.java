@@ -1,7 +1,5 @@
 package com.henri.server;
 
-import com.henri.CallbackAppServerInterface;
-import com.henri.DSServer1;
 import com.henri.dao.GameRepositoryDS1;
 import com.henri.dao.SessionIdentifierRepositoryDS1;
 import com.henri.dao.UserEntityRepositoryDS1;
@@ -10,17 +8,16 @@ import com.henri.model.SessionIdentifierEntityDS1;
 import com.henri.model.UserEntityDS1;
 import org.springframework.stereotype.Component;
 
-import java.lang.reflect.Array;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
 
+/**
+ * Class which serves as the implementation of the interface
+ * */
 @Component("ServerImplDS1")
 public class ServerImplDS1 extends UnicastRemoteObject implements InterfaceServerDS1 {
 
-
-    private Set<String> userSet = new HashSet<>();
-    private Map<String, CallbackAppServerInterface> clientList;
 
 
     //DataSource dataSource;
@@ -34,7 +31,6 @@ public class ServerImplDS1 extends UnicastRemoteObject implements InterfaceServe
 
 
     public ServerImplDS1(UserEntityRepositoryDS1 userEntityRepositoryDS1, SessionIdentifierRepositoryDS1 sessionIdentifierRepositoryDS1, GameRepositoryDS1 gameRepositoryDS1) throws RemoteException {
-        clientList = new HashMap<>();
         this.userEntityRepositoryDS1 = userEntityRepositoryDS1;
         this.sessionIdentifierRepositoryDS1 = sessionIdentifierRepositoryDS1;
         this.gameRepositoryDS1 = gameRepositoryDS1;
@@ -42,23 +38,9 @@ public class ServerImplDS1 extends UnicastRemoteObject implements InterfaceServe
 
     }
 
-    /**
-     * @inheritDoc
-     * */
-    @Override
-    public synchronized void registerForCallback(
-            CallbackAppServerInterface callbackClientObject, String username)
-            throws RemoteException {
-        // store the callback object into the Map (only possible after the setup has been executed)
-        if ((userSet.contains(username))) {
-            clientList.put(username, callbackClientObject);
-            System.out.println("Registered new client ");
-            //doCallbacks();
-        } // end if
-    }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      * */
     @Override
     public String setupMessage(String username, String password) throws RemoteException {
@@ -77,7 +59,7 @@ public class ServerImplDS1 extends UnicastRemoteObject implements InterfaceServe
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      * */
     @Override
     public boolean checkUsername(String username) throws RemoteException {
@@ -90,7 +72,7 @@ public class ServerImplDS1 extends UnicastRemoteObject implements InterfaceServe
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      * */
     @Override
     public void registerUser(String username, String password) throws RemoteException {
@@ -101,7 +83,7 @@ public class ServerImplDS1 extends UnicastRemoteObject implements InterfaceServe
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      * */
     @Override
     public String acquireSessionId(String username) throws RemoteException {
@@ -132,7 +114,7 @@ public class ServerImplDS1 extends UnicastRemoteObject implements InterfaceServe
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      * */
     @Override
     public void createGame(ArrayList<String> gamePositions, String username) throws RemoteException {
@@ -166,7 +148,7 @@ public class ServerImplDS1 extends UnicastRemoteObject implements InterfaceServe
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      * */
     @Override
     public ArrayList<String> requestGames(String username) {
@@ -180,7 +162,7 @@ public class ServerImplDS1 extends UnicastRemoteObject implements InterfaceServe
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      * */
     @Override
     public ArrayList<String> requestAllGames(String username) {
@@ -204,7 +186,7 @@ public class ServerImplDS1 extends UnicastRemoteObject implements InterfaceServe
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      * */
     @Override
     public ArrayList<String> requestGameWinner(int gameId) throws RemoteException {
@@ -239,7 +221,7 @@ public class ServerImplDS1 extends UnicastRemoteObject implements InterfaceServe
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      * */
     @Override
     public ArrayList<String> requestTopPlayers() throws RemoteException {
@@ -279,7 +261,7 @@ public class ServerImplDS1 extends UnicastRemoteObject implements InterfaceServe
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      * */
     @Override
     public boolean checkSessionIdentifier(int sessionId, String sessionIdentifier) throws RemoteException {
@@ -314,7 +296,7 @@ public class ServerImplDS1 extends UnicastRemoteObject implements InterfaceServe
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      * */
     @Override
     public int checkGameOnOtherServer(int gameId) throws RemoteException{
@@ -324,7 +306,7 @@ public class ServerImplDS1 extends UnicastRemoteObject implements InterfaceServe
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      * */
     @Override
     public ArrayList<String> enterNewGame(int gameId, int appPort) throws RemoteException{
@@ -362,7 +344,7 @@ public class ServerImplDS1 extends UnicastRemoteObject implements InterfaceServe
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      * */
     @Override
     public void updateEntireGame(ArrayList<String> gameConfig) throws RemoteException{
