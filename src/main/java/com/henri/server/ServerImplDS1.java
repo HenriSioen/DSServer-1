@@ -80,6 +80,7 @@ public class ServerImplDS1 extends UnicastRemoteObject implements InterfaceServe
         userEntityDS1.setUsername(username);
         userEntityDS1.setPassword(password);
         userEntityRepositoryDS1.save(userEntityDS1);
+        ServerMainDS1.serverImplDS2.newUser(userEntityDS1.getUserId(), username, password);
     }
 
     /**
@@ -151,8 +152,9 @@ public class ServerImplDS1 extends UnicastRemoteObject implements InterfaceServe
      * {@inheritDoc}
      * */
     @Override
-    public ArrayList<String> requestGames(String username) {
-
+    public ArrayList<String> requestGames(String username) throws RemoteException {
+        updateAllUsers();
+        updateAllGames();
         UserEntityDS1 userEntityDS1 = userEntityRepositoryDS1.findUserEntityByUsername(username);
         ArrayList<GameEntityDS1> games = gameRepositoryDS1.findGameEntityByUserId(userEntityDS1.getUserId());
 
@@ -186,10 +188,9 @@ public class ServerImplDS1 extends UnicastRemoteObject implements InterfaceServe
     }
 
     /**
-     * {@inheritDoc}
+     * Function which updates the score of the game winner(s)
      * */
-    @Override
-    public ArrayList<String> requestGameWinner(int gameId) throws RemoteException {
+    public void setGameWinner(int gameId) throws RemoteException {
 
 
         GameEntityDS1 gameEntityDS1 = gameRepositoryDS1.findGameEntityByGameId(gameId);
@@ -211,13 +212,44 @@ public class ServerImplDS1 extends UnicastRemoteObject implements InterfaceServe
 
         ArrayList<UserEntityDS1> winners = findMaxScore(scores, players);
 
-        ArrayList<String> winnerNames = new ArrayList<>();
+
         for (int i = 0; i < winners.size(); i++) {
             winners.get(i).setScore(winners.get(i).getScore() + 1);
             userEntityRepositoryDS1.save(winners.get(i));
-            winnerNames.add(winners.get(i).getUsername());
         }
-        return winnerNames;
+
+    }
+
+    /**
+     * {@inheritDoc}
+     * */
+    public ArrayList<String> requestGameWinner(int gameId){
+        GameEntityDS1 gameEntityDS1 = gameRepositoryDS1.findGameEntityByGameId(gameId);
+        int scoreUserOne = (gameEntityDS1.getUserOneScore());
+        int scoreUserTwo = (gameEntityDS1.getUserTwoScore());
+        int scoreUserThree = (gameEntityDS1.getUserThreeScore());
+        int scoreUserFour = (gameEntityDS1.getUserFourScore());
+        ArrayList<Integer> scores = new ArrayList<>();
+        scores.add(scoreUserOne);
+        scores.add(scoreUserTwo);
+        scores.add(scoreUserThree);
+        scores.add(scoreUserFour);
+
+        ArrayList<Integer> players = new ArrayList<>();
+        players.add(gameEntityDS1.getUserIdOne());
+        players.add(gameEntityDS1.getUserIdTwo());
+        players.add(gameEntityDS1.getUserIdThree());
+        players.add(gameEntityDS1.getUserIdFour());
+
+        ArrayList<UserEntityDS1> winners = findMaxScore(scores, players);
+
+        ArrayList<String> res = new ArrayList<>();
+        for (int i = 0; i < winners.size(); i++) {
+           res.add(winners.get(i).getUsername());
+        }
+
+        return res;
+
     }
 
     /**
@@ -254,9 +286,7 @@ public class ServerImplDS1 extends UnicastRemoteObject implements InterfaceServe
                 winners.add(userEntityRepositoryDS1.findUserEntityByUserId(players.get(i)));
             }
         }
-        for (UserEntityDS1 userEntityDS1 : winners) {
-            userEntityDS1.setScore(max);
-        }
+
         return winners;
     }
 
@@ -349,13 +379,50 @@ public class ServerImplDS1 extends UnicastRemoteObject implements InterfaceServe
     @Override
     public void updateEntireGame(ArrayList<String> gameConfig) throws RemoteException{
         GameEntityDS1 gameEntityDS1 = gameRepositoryDS1.findGameEntityByGameId(Integer.parseInt(gameConfig.get(0)));
-
         RMIImpl.ImplementGame(gameConfig, gameEntityDS1, userEntityRepositoryDS1);
         gameEntityDS1.setVersion(gameEntityDS1.getVersion() + 1);
 
+        //setGameWinner(Integer.parseInt(gameConfig.get(0)));
         ServerMainDS1.serverImplDS2.updateGameServerPort( gameEntityDS1.getActiveServer(),gameEntityDS1.getGameId());
         // ServerMainDS1.serverImplDS3.updateGameServerPort(gameEntityDS1.getGameId(), gameEntityDS1.getActiveServer());
         gameRepositoryDS1.save(gameEntityDS1);
+    }
+
+    public void updateAllGames() throws RemoteException {
+        ArrayList<GameEntityDS1> allGames = (ArrayList<GameEntityDS1>) gameRepositoryDS1.findAll();
+        for(GameEntityDS1 game : allGames){
+            //check if newer versions of the game are available
+            int versionOnSecondServer = ServerMainDS1.serverImplDS2.checkGameVersion(game.getGameId(), game.getVersion());
+            int newestVersion;
+            if(versionOnSecondServer > game.getVersion() /*&& versionOnSecondServer > versionOnThirdServer*/){
+                ArrayList<String> gameConfig = ServerMainDS1.serverImplDS2.getGameConfig(game.getGameId());
+                RMIImpl.ImplementGame(gameConfig, game, userEntityRepositoryDS1);
+                game.setVersion(versionOnSecondServer);
+                gameRepositoryDS1.save(game);
+            }
+        }
+
+    }
+
+    public void updateAllUsers() throws RemoteException{
+        // see if there are new users, add them, check for existing users if their score has increased
+        ArrayList<String> server2Users = ServerMainDS1.serverImplDS2.getCurrentUserConfig();
+        for(int i = 0; i < server2Users.size(); i++){
+            int userId = Integer.parseInt(server2Users.get(i));
+            i++;
+            String userName = server2Users.get(i);
+            i++;
+            int userScore = Integer.parseInt(server2Users.get(i));
+            UserEntityDS1 user = userEntityRepositoryDS1.findUserEntityByUserId(userId);
+            if(user != null){
+                if(user.getUsername().equals(userName)){
+                    if(user.getScore() < userScore){
+                        user.setScore(userScore);
+                        userEntityRepositoryDS1.save(user);
+                    }
+                }
+            }
+        }
     }
 
 

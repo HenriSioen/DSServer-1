@@ -5,6 +5,7 @@ import com.henri.dao.GameRepositoryDS1;
 import com.henri.dao.SessionIdentifierRepositoryDS1;
 import com.henri.dao.UserEntityRepositoryDS1;
 import com.henri.model.GameEntityDS1;
+import com.henri.model.UserEntityDS1;
 import org.springframework.stereotype.Component;
 
 import java.rmi.RemoteException;
@@ -71,6 +72,25 @@ public class RMIImpl extends UnicastRemoteObject implements RMIInterface {
         gameConfig.add(String.valueOf(gameEntityDS1.getVersion()));
 
         return gameConfig;
+    }
+
+    @Override
+    public ArrayList<String> getCurrentUserConfig(){
+        ArrayList<String> res = new ArrayList<>();
+        for(UserEntityDS1 user : userEntityRepositoryDS1.findAll()){
+            res.add(String.valueOf(user.getUserId()));
+            res.add(user.getUsername());
+            res.add(String.valueOf(user.getScore()));
+        }
+        return res;
+    }
+
+    @Override
+    public void newUser(int userId, String username, String password){
+        UserEntityDS1 user = new UserEntityDS1();
+        user.setUsername(username);
+        user.setPassword(password);
+        userEntityRepositoryDS1.save(user);
     }
 
     /**
